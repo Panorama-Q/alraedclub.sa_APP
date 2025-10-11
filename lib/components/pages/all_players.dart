@@ -1,127 +1,228 @@
+import 'package:alradi_app/components/drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:alradi_app/services/firebaseApi.dart';
+import 'package:alradi_app/screens/custom_app_bar.dart';
 
 class AllPlayers extends StatefulWidget {
   final List<Map<String, dynamic>> playersList;
-  const AllPlayers({Key? key, required this.playersList}) : super(key: key);
+  const AllPlayers({super.key, required this.playersList});
 
   @override
   State<AllPlayers> createState() => _AllPlayersState();
 }
 
 class _AllPlayersState extends State<AllPlayers> {
+  late List<Map<String, dynamic>> playersList;
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    playersList = widget.playersList;
+  }
+
+  Future<void> _refreshPlayers() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      List<Map<String, dynamic>> updatedPlayers = await FirebaseApi().getPlayers();
+      
+      setState(() {
+        playersList = updatedPlayers;
+        _isRefreshing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> playersList = widget.playersList;
-    print('صفحة جميع اللاعبين تسلم عليك وتقول');
-    print(playersList);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('لاعبين نادي الرائد'),
-        actions: [
-          ClipOval(
-            child: Image.asset('assets/logo.png'),
-          ),
-        ],
-        backgroundColor: const Color.fromARGB(255, 124, 40, 40),
-        centerTitle: true,
-        toolbarHeight: 60,
-      ),
-      body: SafeArea(
-        child: Center(
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double horizontalPadding = screenWidth * 0.04;
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: CustomAppBar(title: 'لاعبين نادي الرائد'),
+        backgroundColor: const Color(0xFFF8F9FA),
+        drawer: AppDrawer(),
+        body: SafeArea(
           child: Column(
             children: [
               Container(
-                height: 90.0,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/first_olayr.png'),
-                    fit: BoxFit.cover,
+                height: screenWidth * 0.25,
+                margin: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: screenWidth * 0.03),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0xFFE0E0E0),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                  child: Image.asset(
+                    'assets/first_olayr.png',
+                    fit: BoxFit.contain,
+                    width: double.infinity,
                   ),
                 ),
               ),
-              const SizedBox(height: 10), // تباعد بين الصورة والنص
+              SizedBox(height: screenWidth * 0.02),
 
               Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2), //عدد اللاعبين بصف
-                  itemCount: playersList.length,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: screenWidth * 0.03,
+                      mainAxisSpacing: screenWidth * 0.03,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemCount: playersList.length,
+                    itemBuilder: (context, index) {
+                      Map<String, dynamic> currentPlayer = playersList[index];
 
-                  // يعني بيلف على اللست كلها وبيعرض الايتم نفسه داخل البوكس الي بنسويه
-                  itemBuilder: (context, index) {
-                    // حق نسهل لنفسنا نحفظ الماب الحالي في ماب ثاني
-                    Map<String, dynamic> currentPlayer = playersList[index];
-
-                    return GestureDetector(
-                      onTap: () {
-                        print(currentPlayer);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3),
+                      return GestureDetector(
+                        onTap: () {
+                          print(currentPlayer);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0xFFE0E0E0),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(screenWidth * 0.04),
                             ),
-                          ],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(9)),
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.width * 0.15,
-                            width: MediaQuery.of(context).size.width * 0.15,
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
                                   child: Builder(builder: (context) {
                                     String image = currentPlayer['Image'];
                                     if (image.contains('http')) {
                                       return Image.network(
                                         currentPlayer['Image'],
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.12,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                0.12,
-                                        fit: BoxFit.contain,
+                                        width: screenWidth * 0.25,
+                                        height: screenWidth * 0.25,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder: (context, child, loadingProgress) {
+                                          if (loadingProgress == null) return child;
+                                          return Container(
+                                            width: screenWidth * 0.25,
+                                            height: screenWidth * 0.25,
+                                            color: const Color(0xFFF5F5F5),
+                                            child: Center(
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: const Color.fromARGB(255, 124, 40, 40),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            width: screenWidth * 0.25,
+                                            height: screenWidth * 0.25,
+                                            color: const Color(0xFFF5F5F5),
+                                            child: Icon(
+                                              Icons.person,
+                                              size: screenWidth * 0.1,
+                                              color: const Color(0xFF9E9E9E),
+                                            ),
+                                          );
+                                        },
                                       );
                                     } else {
                                       return Image.asset(
                                         currentPlayer['Image'],
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        fit: BoxFit.fitHeight,
+                                        width: screenWidth * 0.25,
+                                        height: screenWidth * 0.25,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            width: screenWidth * 0.25,
+                                            height: screenWidth * 0.25,
+                                            color: const Color(0xFFF5F5F5),
+                                            child: Icon(
+                                              Icons.person,
+                                              size: screenWidth * 0.1,
+                                              color: const Color(0xFF9E9E9E),
+                                            ),
+                                          );
+                                        },
                                       );
                                     }
                                   }),
                                 ),
+                                SizedBox(height: screenWidth * 0.02),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+                                  child: Text(
+                                    currentPlayer['Name'],
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF424242),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                SizedBox(height: screenWidth * 0.01),
                                 Text(
                                   currentPlayer['POS'],
-                                ),
-                                Text(
-                                  currentPlayer['Name'],
+                                  style: TextStyle(
+                                    fontSize: screenWidth * 0.03,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF757575),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
           ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _isRefreshing ? null : _refreshPlayers,
+          backgroundColor: const Color.fromARGB(255, 124, 40, 40),
+          child: _isRefreshing 
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Icon(Icons.refresh, color: Colors.white),
         ),
       ),
     );

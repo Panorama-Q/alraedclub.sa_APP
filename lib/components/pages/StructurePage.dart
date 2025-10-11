@@ -1,107 +1,124 @@
+import 'package:alradi_app/screens/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:alradi_app/components/drawer.dart';
 
 class StructurePage extends StatelessWidget {
-  const StructurePage({Key? key}) : super(key: key);
+  const StructurePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'الهيكل التنظيمي ',
-          style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-        ),
-        actions: [
-          ClipOval(
-            child: Image.asset('assets/logo.png'),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: CustomAppBar(title: 'الهيكل التنظيمي'),
+        drawer: AppDrawer(),
+        body: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF5F5F5),
           ),
-        ],
-        backgroundColor: const Color.fromARGB(255, 124, 40, 40),
-        centerTitle: true,
-        toolbarHeight: 60,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            bottomRight: Radius.circular(30),
-            bottomLeft: Radius.circular(30),
-          ),
-        ),
-      ),
-      drawer: AppDrawer(),
-      body: SafeArea(
-        child: ListView(
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          children: [
-            Container(
-              color: Colors.white,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 8,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const TextShadow(
-                    text: 'الهيكل التنظيمي',
-                    style: TextStyle(
-                      fontSize: 23,
-                      fontFamily: 'Cario',
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    shadows: [
-                      Shadow(
-                        color: Colors.grey,
-                        offset: Offset(2, 2),
-                        blurRadius: 3,
+          child: SafeArea(
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE0E0E0),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: const Color(0xFFEEEEEE),
+                        width: 1,
                       ),
-                    ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF8F8F8),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
+                            ),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Color(0xFFEEEEEE),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.account_tree_rounded,
+                                color: Color.fromARGB(255, 124, 40, 40),
+                                size: 24,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'الهيكل التنظيمي الإداري',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 124, 40, 40),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFE0E0E0),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: const Color(0xFFF0F0F0),
+                                  width: 1,
+                                ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.asset(
+                                  'assets/stru.jpg',
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(1),
-                    child: Image.asset('assets/stru.jpg'),
-                  ),
-                ],
-              ),
+                ),
+                
+                const SizedBox(height: 20),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class TextShadow extends StatelessWidget {
-  final String text;
-  final TextStyle style;
-  final List<Shadow> shadows;
-
-  const TextShadow({
-    Key? key,
-    required this.text,
-    this.style = const TextStyle(),
-    this.shadows = const [],
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Text(
-          text,
-          style: style.copyWith(shadows: []),
-        ),
-        Text(
-          text,
-          style: style.copyWith(shadows: shadows),
-        ),
-      ],
     );
   }
 }

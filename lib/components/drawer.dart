@@ -1,382 +1,519 @@
 import 'package:alradi_app/components/pages/ClubVision.dart';
 import 'package:alradi_app/components/pages/SurveyScreen.dart';
 import 'package:alradi_app/components/pages/acadmic.dart';
+import 'package:alradi_app/components/pages/all_players.dart';
+import 'package:alradi_app/components/pages/desires.dart';
 import 'package:alradi_app/components/pages/document.dart';
 import 'package:alradi_app/components/pages/goalsclub.dart';
 import 'package:alradi_app/components/pages/pageemplo.dart';
 import 'package:alradi_app/components/pages/pagevisit.dart';
 import 'package:alradi_app/components/pages/playdiff.dart';
-import 'package:alradi_app/components/pages/players_cards.dart';
 import 'package:alradi_app/components/pages/problem.dart';
 import 'package:alradi_app/components/pages/report.dart';
 import 'package:alradi_app/components/pages/store.dart';
 import 'package:alradi_app/components/pages/volunteer.dart';
 import 'package:alradi_app/screens/about.dart';
+import 'package:alradi_app/screens/homepage.dart';
 import 'package:alradi_app/screens/news.dart';
 import 'package:flutter/material.dart';
 import 'package:alradi_app/components/pages/BoardPage.dart';
 import 'package:alradi_app/components/pages/StructurePage.dart';
-import 'package:enefty_icons/enefty_icons.dart';
-
 import 'package:expandable/expandable.dart';
+import 'package:alradi_app/services/firebaseApi.dart';
 
-class AppDrawer extends StatelessWidget {
-  List<GlobalKey>? keys;
-  AppDrawer({super.key, this.keys});
+class AppDrawer extends StatefulWidget {
+  final List<GlobalKey>? keys;
+  const AppDrawer({super.key, this.keys});
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  String? _reportYear;
+  List<Map<String, dynamic>> footballPlayers = [];
+  bool _isLoadingYear = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFootballPlayers();
+    _loadReportYear();
+  }
+
+  Future<void> _loadReportYear() async {
+    final year = await FirebaseApi().getReportYear();
+    if (mounted) {
+      setState(() {
+        _reportYear = year;
+        _isLoadingYear = false;
+      });
+    }
+  }
+
+  Future<void> _loadFootballPlayers() async {
+    footballPlayers = await FirebaseApi().getPlayers();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    //  var widget;
-    return // ignore_for_file: must_be_immutable
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double iconSize = screenWidth * 0.055;
+    final double fontSize = screenWidth * 0.04;
 
-        SafeArea(
-      child: Drawer(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Header
-              const SizedBox(height: 12),
-              Stack(
-                children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          icon: const Icon(Icons.close),
-                        )
-                      ],
-                    ),
-                  ),
-                  Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5), // Shadow color
-                            spreadRadius: 5, // Spread radius
-                            blurRadius: 7, // Blur radius
-                            offset: Offset(0, 3), // Offset in x and y direction
-                          ),
+    return SafeArea(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Drawer(
+          backgroundColor: const Color(0xFFFFFFFF),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: screenWidth * 0.03),
+                Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            icon: Icon(Icons.close, size: iconSize),
+                          )
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/placeholder.PNG',
+                    ),
+                    Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF9E9E9E),
+                              spreadRadius: screenWidth * 0.01,
+                              blurRadius: screenWidth * 0.02,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          'assets/placeholder.PNG',
+                        ),
                       ),
                     ),
+                  ],
+                ),
+                _buildListTile(
+                  'الصفحة الرئيسية',
+                  Icons.home_filled,
+                  const HomePage(),
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildCustomDivider(screenWidth),
+                _buildExpandedWidgetWithDivider(
+                  'عن نادي الرائد',
+                  [
+                    _buildListTile(
+                      'نبذة تاريخية',
+                      Icons.history_edu,
+                      const About(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'الهيكل التنظيمي',
+                      Icons.account_tree,
+                      const StructurePage(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'إتصل بنا',
+                      Icons.contact_phone,
+                      const BoardPage(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                  ],
+                  Icons.info_outlined,
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildExpandedWidgetWithDivider(
+                  'المركز الاعلامي',
+                  [
+                    _buildListTile(
+                      'الأخبار',
+                      Icons.article_outlined,
+                      const NewsPage(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'ألبوم الصور',
+                      Icons.photo_album_outlined,
+                      const Cards(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                  ],
+                  Icons.ondemand_video_outlined,
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildExpandedWidgetWithDivider(
+                  'الرياضات',
+                  [
+                    _buildListTile(
+                      'كرة القدم',
+                      Icons.sports_soccer,
+                      AllPlayers(playersList: footballPlayers),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'الأكاديمية',
+                      Icons.school_outlined,
+                      const AcademyPage(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                  ],
+                  Icons.sports_score_outlined,
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildExpandedWidgetWithDivider(
+                  'الإستراتيجية',
+                  [
+                    _buildListTile(
+                      'رؤية النادي ورسالته',
+                      Icons.visibility_outlined,
+                      const ClubVision(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'الاهداف الإستراتيجية',
+                      Icons.flag_outlined,
+                      const GoalsClub(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'وثيقة الخطة الإستراتيجية\n(2023-2028)',
+                      Icons.description_outlined,
+                      const Document(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _isLoadingYear
+                        ? _buildYearLoading(screenWidth)
+                        : _reportYear != null
+                            ? _buildListTile(
+                                'التقرير السنوي ($_reportYear)',
+                                Icons.assessment_outlined,
+                                const Report(),
+                                screenWidth: screenWidth,
+                                iconSize: iconSize,
+                                fontSize: fontSize,
+                              )
+                            : _buildListTile(
+                                'التقرير السنوي',
+                                Icons.assessment_outlined,
+                                const Report(),
+                                screenWidth: screenWidth,
+                                iconSize: iconSize,
+                                fontSize: fontSize,
+                              ),
+                  ],
+                  Icons.timeline_outlined,
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildExpandedWidgetWithDivider(
+                  'الاستطلاعات',
+                  [
+                    _buildListTile(
+                      'استطلاع الجمهور',
+                      Icons.people_alt_outlined,
+                      SurveyScreen(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'استطلاع الموظفين',
+                      Icons.business_center_outlined,
+                      pageemplo(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'استطلاع الزوار',
+                      Icons.person_search_outlined,
+                      pagevisit(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                  ],
+                  Icons.poll_outlined,
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildListTileWithDivider(
+                  'المتجر',
+                  Icons.shopping_bag_outlined,
+                  const store(),
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildListTileWithDivider(
+                  'البلاغات والشكاوي',
+                  Icons.report_gmailerrorred_outlined,
+                  const Problem(),
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+                _buildExpandedWidgetWithDivider(
+                  'المزيد',
+                  [
+                    _buildListTile(
+                      'المتطوعون',
+                      Icons.volunteer_activism,
+                      const Volunteer(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                    _buildListTile(
+                      'الراغبون بالتسجيل',
+                      Icons.how_to_reg_outlined,
+                      Desires(),
+                      screenWidth: screenWidth,
+                      iconSize: iconSize,
+                      fontSize: fontSize,
+                    ),
+                  ],
+                  Icons.more_horiz,
+                  screenWidth: screenWidth,
+                  iconSize: iconSize,
+                  fontSize: fontSize,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildYearLoading(double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.02,
+        vertical: screenWidth * 0.02,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.assessment_outlined,
+            color: const Color(0xFF757575),
+            size: screenWidth * 0.05,
+          ),
+          SizedBox(width: screenWidth * 0.01),
+          Container(
+            width: screenWidth * 0.15,
+            height: screenWidth * 0.04,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0E0E0),
+              borderRadius: BorderRadius.circular(screenWidth * 0.01),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListTile(
+    String title,
+    IconData icon,
+    Widget screenName, {
+    required double screenWidth,
+    required double iconSize,
+    required double fontSize,
+  }) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => screenName),
+        (route) => false,
+      ),
+      child: Container(
+        margin: EdgeInsets.only(
+          right: screenWidth * 0.04,
+          left: screenWidth * 0.02,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.02,
+          vertical: screenWidth * 0.02,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFF616161), size: iconSize),
+            SizedBox(width: screenWidth * 0.03),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: fontSize,
+                  color: const Color(0xFF212121),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListTileWithDivider(
+    String title,
+    IconData icon,
+    Widget screenName, {
+    required double screenWidth,
+    required double iconSize,
+    required double fontSize,
+  }) {
+    return Column(
+      children: [
+        _buildListTile(
+          title,
+          icon,
+          screenName,
+          screenWidth: screenWidth,
+          iconSize: iconSize,
+          fontSize: fontSize,
+        ),
+        _buildCustomDivider(screenWidth),
+      ],
+    );
+  }
+
+  Widget _buildExpandedWidgetWithDivider(
+    String title,
+    List<Widget> children,
+    IconData icon, {
+    required double screenWidth,
+    required double iconSize,
+    required double fontSize,
+  }) {
+    return Column(
+      children: [
+        _buildExpandedWidget(
+          title,
+          children,
+          icon,
+          screenWidth: screenWidth,
+          iconSize: iconSize,
+          fontSize: fontSize,
+        ),
+        _buildCustomDivider(screenWidth),
+      ],
+    );
+  }
+
+  Widget _buildExpandedWidget(
+    String title,
+    List<Widget> children,
+    IconData icon, {
+    required double screenWidth,
+    required double iconSize,
+    required double fontSize,
+  }) {
+    return ExpandablePanel(
+      theme: ExpandableThemeData(
+        iconPlacement: ExpandablePanelIconPlacement.right,
+        iconColor: const Color(0xFF616161),
+        iconSize: iconSize,
+      ),
+      collapsed: const Row(),
+      header: Container(
+        margin: EdgeInsets.only(
+          right: screenWidth * 0.04,
+          left: screenWidth * 0.02,
+        ),
+        height: screenWidth * 0.1,
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(icon, color: const Color(0xFF616161), size: iconSize),
+              SizedBox(width: screenWidth * 0.03),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: fontSize,
+                    color: const Color(0xFF212121),
                   ),
-                ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Divider(
-                color: Color.fromARGB(255, 175, 35, 35), // تغيير لون الخط
-                thickness: 1, // تغيير سمك الخط
-                indent: 16, // تحديد المسافة عند البداية
-                endIndent: 16, // تحديد المسافة عند النهاية
-              ),
-              myExpandedWidget(
-                context,
-                'عن نادي الرائد ',
-                [
-                  // const Divider(
-                  //   color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                  //   thickness: 0.6, // تغيير سمك الخط
-                  //   indent: 100, // تحديد المسافة عند البداية
-                  //   endIndent: 1, // تحديد المسافة عند النهاية
-                  // ),
-                  myListTile(
-                    context,
-                    ' نبذة تاريخية',
-                    Icons.message_sharp,
-                    const About(),
-                  ),
-                  myListTile(
-                    context,
-                    'الهيكل التنظيمي',
-                    Icons.grading_outlined,
-                    const StructurePage(),
-                  ),
-                  myListTile(
-                    context,
-                    ' إتصل بنا ',
-                    Icons.contact_phone_rounded,
-                    const BoardPage(),
-                  ),
-                ],
-                Icons.sports_football,
-              ),
-              const Divider(
-                color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                thickness: 0.6, // تغيير سمك الخط
-                indent: 100, // تحديد المسافة عند البداية
-                endIndent: 1, // تحديد المسافة عند النهاية
-              ),
-              myExpandedWidget(
-                context,
-                'المركز الاعلامي',
-                [
-                  // const Divider(
-                  //   color: Colors.black54, // تغيير لون الخط
-                  //   thickness: 0.6, // تغيير سمك الخط
-                  //   indent: 100, // تحديد المسافة عند البداية
-                  //   endIndent: 1, // تحديد المسافة عند النهاية
-                  // ),
-                  myListTile(
-                    context,
-                    ' الأخبار',
-                    Icons.newspaper_outlined,
-                    const NewsPage(), // بدلي الصفحات حقها بعدين
-                  ),
-                  myListTile(
-                    context,
-                    ' ألبوم الصور',
-                    Icons.photo_library_outlined,
-                    const Cards(), // بدلي الصفحات حقها بعدين
-                  ),
-                ],
-                Icons.sports_football,
-              ),
-              const Divider(
-                color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                thickness: 0.6, // تغيير سمك الخط
-                indent: 100, // تحديد المسافة عند البداية
-                endIndent: 1, // تحديد المسافة عند النهاية
-              ),
-              myExpandedWidget(
-                context,
-                'الرياضات',
-                [
-                  // const Divider(
-                  //   color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                  //   thickness: 0.6, // تغيير سمك الخط
-                  //   indent: 100, // تحديد المسافة عند البداية
-                  //   endIndent: 1, // تحديد المسافة عند النهاية
-                  // ),
-                  myListTile(context, 'كرة القدم',
-                      Icons.sports_basketball_sharp, const playersCard()),
-                  myListTile(context, 'الأكاديمية', Icons.blur_linear_sharp,
-                      const acdimc()),
-                ],
-                Icons.sports_handball_rounded,
-              ),
-              const Divider(
-                color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                thickness: 0.6, // تغيير سمك الخط
-                indent: 100, // تحديد المسافة عند البداية
-                endIndent: 1, // تحديد المسافة عند النهاية
-              ),
-              myExpandedWidget(
-                context,
-                'الإستراتيجية',
-                [
-                  myListTile(
-                    context,
-                    'رؤية النادي ورسالته',
-                    Icons.message_sharp,
-                    const ClubVision(), // بدلي الصفحات حقها بعدين
-                  ),
-                  myListTile(
-                    context,
-                    'الاهداف الإستراتيجية',
-                    Icons.grading_outlined,
-                    const goalsclub(), // بدلي الصفحات حقها بعدين
-                  ),
-                  myListTile(
-                    context,
-                    'وثيقة الخطة الإستراتيجية(2019-2023)',
-                    Icons.document_scanner_sharp,
-                    const document(), // بدلي الصفحات حقها بعدين
-                  ),
-                  myListTile(
-                    context,
-                    'التقرير السنوي(2021-2022)',
-                    Icons.restore_page_outlined,
-                    const report(), // بدلي الصفحات حقها بعدين
-                  ),
-                ],
-                EneftyIcons.diagram_outline,
-              ),
-              const Divider(
-                color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                thickness: 0.6, // تغيير سمك الخط
-                indent: 100, // تحديد المسافة عند البداية
-                endIndent: 1, // تحديد المسافة عند النهاية
-              ),
-              myExpandedWidget(
-                context,
-                'الاستطلاعات',
-                [
-                  myListTile(
-                    context,
-                    'استطلاع الجمهور',
-                    Icons.poll,
-                    SurveyScreen(), // بدلي الصفحات حقها بعدين
-                  ),
-                  myListTile(
-                    context,
-                    'استطلاع الموظفين',
-                    Icons.group,
-                    pageemplo(), // بدلي الصفحات حقها بعدين
-                  ),
-                  myListTile(
-                    context,
-                    'استطلاع الزوار',
-                    Icons.person_search_sharp,
-                    pagevisit(), // بدلي الصفحات حقها بعدين
-                  ),
-                ],
-                EneftyIcons.note_2_outline,
-              ),
-              const Divider(
-                color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                thickness: 0.6, // تغيير سمك الخط
-                indent: 100, // تحديد المسافة عند البداية
-                endIndent: 1, // تحديد المسافة عند النهاية
-              ),
-              myListTile(
-                context,
-                'المتجر',
-                Icons.store,
-                const store(), // بدلي الصفحات حقها بعدين
-              ),
-              const Divider(
-                color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                thickness: 0.6, // تغيير سمك الخط
-                indent: 100, // تحديد المسافة عند البداية
-                endIndent: 1, // تحديد المسافة عند النهاية
-              ),
-              myListTile(
-                context,
-                'البلاغات والشكاوي',
-                Icons.report_problem_outlined,
-                const broblem(), // بدلي الصفحات حقها بعدين
-              ),
-              const Divider(
-                color: Color.fromARGB(255, 6, 1, 1), // تغيير لون الخط
-                thickness: 0.6, // تغيير سمك الخط
-                indent: 100, // تحديد المسافة عند البداية
-                endIndent: 1, // تحديد المسافة عند النهاية
-              ),
-              myExpandedWidget(
-                context,
-                'المزيد',
-                [
-                  myListTile(
-                    context,
-                    'المتطوعون',
-                    Icons.person_pin,
-                    volunteer(), // بدلي الصفحات حقها بعدين
-                  ),
-                  myListTile(
-                    context,
-                    'الراغبون بالتسجيل',
-                    Icons.group,
-                    pageemplo(), // بدلي الصفحات حقها بعدين
-                  ),
-                ],
-                EneftyIcons.note_2_outline,
-              ),
+              SizedBox(width: screenWidth * 0.02),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-navigateToKey(BuildContext context, List<GlobalKey>? keys, int index) {
-  if (keys == null) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => const About(),
-      ),
-      (route) => false,
-    );
-  } else {
-    Navigator.of(context).pop(); // لإغلاق القائمة عند تحديد العنصر
-    Scrollable.ensureVisible(
-      keys[index].currentContext!,
-      alignment: 0.5,
-      duration: const Duration(seconds: 1),
-      curve: Curves.ease,
-    );
-  }
-}
-
-Widget myListTile(
-    BuildContext context, String title, IconData icon, Widget screenName) {
-  return GestureDetector(
-    onTap: () => Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => screenName,
-      ),
-      (route) => false,
-    ),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Icon(
-            icon,
-            color: Colors.black54,
-            size: 20,
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget myExpandedWidget(
-  BuildContext context,
-  String title,
-  List<Widget> children,
-  IconData icon,
-) {
-  return ExpandablePanel(
-    theme: const ExpandableThemeData(
-      iconPlacement: ExpandablePanelIconPlacement.left,
-    ),
-    collapsed: const Row(),
-    header: SizedBox(
-      height: 40,
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              icon,
-              color: Colors.black54,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-          ],
+      expanded: Padding(
+        padding: EdgeInsets.only(
+          bottom: screenWidth * 0.01,
+          right: screenWidth * 0.04,
+          left: screenWidth * 0.02,
         ),
+        child: Column(children: children),
       ),
-    ),
-    expanded: Padding(
-      padding: const EdgeInsets.only(bottom: 4, left: 8, right: 20),
-      child: Column(
-        children: children,
+    );
+  }
+
+  Widget _buildCustomDivider(double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+      child : const Divider(
+        color: Color(0xFFE0E0E0),
+        thickness: 0.5,
+        height: 1,
       ),
-    ),
-  );
+    );
+  }
 }
