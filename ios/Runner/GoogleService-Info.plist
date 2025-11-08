@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.alradiApp</string>
+    <string>com.alradiApp.mhmd</string>
 	<key>PROJECT_ID</key>
 	<string>alraedclub-6d192</string>
 	<key>STORAGE_BUCKET</key>
